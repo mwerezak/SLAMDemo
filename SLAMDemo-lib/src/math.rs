@@ -14,6 +14,10 @@ where F: num_traits::Float
     val - cycle * ((val - from) / cycle).floor()
 }
 
+
+// pub struct WrappedAngle<F: num_traits::Float, const WRAP: f32>(F);
+
+
 #[derive(Debug, Clone, Copy)]
 pub struct Matrix2 {
 	// basis vector representation

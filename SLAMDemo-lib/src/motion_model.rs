@@ -1,15 +1,6 @@
-use rand;
+use std::ops;
 use gdnative::prelude::*;
-use crate::math::{Matrix2, Gaussian};
-
-
-trait MotionModel {
-	type State;
-	type Control;
-	type MotionEstimate;
-	fn motion_update(input: Self::Control, prev_state: Self::State) -> Self::MotionEstimate;
-	// fn next_meas_state(prev_meas_state: Self::State, next_state: Self::State, prev_state: Self::State) -> Self::State;
-}
+use crate::math::{self, Matrix2, Gaussian};
 
 
 #[derive(Clone, Copy, Debug)]
@@ -41,16 +32,124 @@ impl Pose2D {
 	}
 }
 
+impl std::ops::Add for &Pose2D {
+	type Output = Pose2D;
+	fn add(self, rhs: &Pose2D) -> Pose2D {
+		Pose2D {
+			loc: self.loc + rhs.loc,
+			rot: self.rot + rhs.rot,
+		}
+	}
+}
 
-// See figure 5.33
-struct OdoControl2D {
-	next: Pose2D,
-	prev: Pose2D,
+impl std::ops::Sub for &Pose2D {
+	type Output = Pose2D;
+	fn sub(self, rhs: &Pose2D) -> Pose2D {
+		Pose2D {
+			loc: self.loc - rhs.loc,
+			rot: self.rot - rhs.rot,
+		}
+	}
 }
 
 
-struct OdoEstimate2D {
+pub struct OdoUpdate2D {
+	pub prev: Pose2D,
+	pub next: Pose2D,
+	pub delta: f32, // timedelta
+}
 
+impl OdoUpdate2D {
+	pub fn new(prev: Pose2D, next: Pose2D, delta: f32) -> Self {
+		Self { prev, next, delta }
+	}
+}
+
+
+pub struct OdoMotionBuilder2D {
+	pub speed_threshold: f32,
+	pub allow_reverse: bool,
+}
+
+impl Default for OdoMotionBuilder2D {
+	fn default() -> OdoMotionBuilder2D {
+		Self {
+			speed_threshold: 1.0,
+			allow_reverse: true,
+		}
+	}
+}
+
+impl OdoMotionBuilder2D {
+	pub fn with_threshold(speed_threshold: f32) -> Self {
+		Self { speed_threshold, allow_reverse: true, }
+	}
+
+	pub fn from_update(&self, update: &OdoUpdate2D) -> OdoMotion2D {
+		const PI: f32 = std::f32::consts::PI;
+
+		// model odometry as: rot1 -> translation -> rot2
+		let cur_pose = update.next;
+		let last_pose = update.prev;
+		
+		let mut trans = (cur_pose.loc - last_pose.loc).length();
+
+		// if we aren't actually moving, atan2() will introduce a lot of error, so apply a threshold
+		let mut rot1 = 0.0;
+		if trans > self.speed_threshold * update.delta {
+			rot1 = f32::atan2(cur_pose.loc.y - last_pose.loc.y, cur_pose.loc.x - last_pose.loc.x) - last_pose.rot;
+			rot1 = math::wrap(rot1, -PI, PI);
+		}
+		
+		if self.allow_reverse && rot1.abs() > PI/2.0 {
+			trans *= -1.0;
+			rot1 = math::wrap(rot1-PI, -PI, PI);
+		}
+
+		let rot2 = cur_pose.rot - last_pose.rot - rot1;
+		let rot2 = math::wrap(rot2, -PI, PI);
+
+		OdoMotion2D { rot1, trans, rot2, delta: update.delta }
+	}
+}
+
+pub struct OdoMotion2D {
+	pub rot1: f32,
+	pub trans: f32,
+	pub rot2: f32,
+	pub delta: f32,
+}
+
+impl OdoMotion2D {
+	pub fn apply_update(&self, pose: &Pose2D) -> Pose2D {
+		Pose2D {
+			loc: pose.loc + Vector2::RIGHT.rotated(pose.rot + self.rot1) * self.trans,
+			rot: pose.rot + self.rot1 + self.rot2,
+		}
+	}
+}
+
+pub struct OdoMotionModel2D {
+	pub rot1: Gaussian,
+	pub trans: Gaussian,
+	pub rot2: Gaussian,
+	pub delta: f32,
+}
+
+impl OdoMotionModel2D {
+	pub fn sample_pose(&self, base: &Pose2D) -> Pose2D {
+		self.sample_motion()
+			.apply_update(base)
+	}
+
+	pub fn sample_motion(&self) -> OdoMotion2D {
+		OdoMotion2D {
+			rot1: self.rot1.sample(),
+			trans: self.trans.sample(),
+			rot2: self.rot2.sample(),
+			delta: self.delta,
+		}
+	}
 }
 
 // Adapted from chapter 5.4
@@ -64,10 +163,40 @@ impl OdometryNoise {
 	}
 }
 
-
-struct OdometryModel2D {
-
+pub struct OdometryModel2D {
+	noise: OdometryNoise,
+	builder: OdoMotionBuilder2D,
 }
 
+impl OdometryModel2D {
+	pub fn new(noise_params: OdometryNoise, motion_params: OdoMotionBuilder2D) -> Self {
+		Self {
+			noise: noise_params,
+			builder: motion_params,
+		}
+	}
 
+	pub fn noise_params(&self) -> &OdometryNoise { &self.noise }
 
+	pub fn get_motion_model(&self, update: &OdoUpdate2D) -> OdoMotionModel2D {
+		let motion = self.builder.from_update(update);
+
+		let (alpha1, alpha2, alpha3, alpha4) = self.noise.alpha;
+		let rot1_noise  = alpha1*motion.rot1.powi(2)  + alpha2*motion.trans.powi(2);
+		let trans_noise = alpha3*motion.trans.powi(2) + alpha4*(motion.rot1.powi(2) + motion.rot2.powi(2));
+		let rot2_noise  = alpha1*motion.rot2.powi(2)  + alpha2*motion.trans.powi(2);
+
+		OdoMotionModel2D {
+			rot1:  Gaussian::new(motion.rot1,  rot1_noise),
+			trans: Gaussian::new(motion.trans, trans_noise),
+			rot2:  Gaussian::new(motion.rot2,  rot2_noise),
+			delta: motion.delta,
+		}
+	}
+
+	// get measured motion with noise applied
+	pub fn get_motion_measurement(&self, true_update: &OdoUpdate2D) -> OdoMotion2D {		
+		self.get_motion_model(true_update)
+			.sample_motion()
+	}
+}
