@@ -153,13 +153,26 @@ impl OdoMotionModel2D {
 }
 
 // Adapted from chapter 5.4
+#[derive(Debug)]
 pub struct OdometryNoise {
-	pub alpha: (f32, f32, f32, f32),
+	pub rot_rot: f32,     // effect of rotation speed on rotation noise
+	pub trans_rot: f32,   // effect of translation speed on rotation noise
+	pub trans_trans: f32, // effect of translation speed on translation noise
+	pub rot_trans: f32,   // effect of rotation speed on translation noise
+}
+
+impl Default for OdometryNoise {
+	fn default() -> Self {
+		Self { rot_rot: 0., trans_rot: 0., trans_trans: 0., rot_trans: 0. }
+	}
 }
 
 impl OdometryNoise {
-	pub fn new(alpha1: f32, alpha2: f32, alpha3: f32, alpha4: f32) -> Self {
-		Self { alpha: (alpha1, alpha2, alpha3, alpha4) }
+	pub fn new(rot_rot: f32, trans_rot: f32, trans_trans: f32, rot_trans: f32) -> Self {
+		Self {
+			rot_rot, rot_trans,
+			trans_rot, trans_trans,
+		}
 	}
 }
 
@@ -177,19 +190,23 @@ impl OdometryModel2D {
 	}
 
 	pub fn noise_params(&self) -> &OdometryNoise { &self.noise }
+	pub fn noise_params_mut(&mut self) -> &mut OdometryNoise { &mut self.noise }
 
 	pub fn get_motion_model(&self, update: &OdoUpdate2D) -> OdoMotionModel2D {
 		let motion = self.builder.from_update(update);
 
-		let (alpha1, alpha2, alpha3, alpha4) = self.noise.alpha;
-		let rot1_noise  = alpha1*motion.rot1.powi(2)  + alpha2*motion.trans.powi(2);
-		let trans_noise = alpha3*motion.trans.powi(2) + alpha4*(motion.rot1.powi(2) + motion.rot2.powi(2));
-		let rot2_noise  = alpha1*motion.rot2.powi(2)  + alpha2*motion.trans.powi(2);
+		let rot1_sqr = motion.rot1.powi(2);
+		let rot2_sqr = motion.rot2.powi(2);
+		let trans_sqr = motion.trans.powi(2);
+
+		let rot1_stdev  = rot1_sqr*self.noise.rot_rot + trans_sqr*self.noise.trans_rot;
+		let trans_stdev = trans_sqr*self.noise.trans_trans + (rot1_sqr + rot2_sqr)*self.noise.rot_trans;
+		let rot2_stdev  = rot2_sqr*self.noise.rot_rot + trans_sqr*self.noise.trans_rot;
 
 		OdoMotionModel2D {
-			rot1:  Gaussian::new(motion.rot1,  rot1_noise),
-			trans: Gaussian::new(motion.trans, trans_noise),
-			rot2:  Gaussian::new(motion.rot2,  rot2_noise),
+			rot1:  Gaussian::new(motion.rot1,  rot1_stdev),
+			trans: Gaussian::new(motion.trans, trans_stdev),
+			rot2:  Gaussian::new(motion.rot2,  rot2_stdev),
 			delta: motion.delta,
 		}
 	}

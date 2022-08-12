@@ -1,7 +1,6 @@
 use gdnative::prelude::*;
 use crate::math::{self, Gaussian};
-use crate::motion_model::{Pose2D, OdometryNoise, OdometryModel2D, OdoUpdate2D};
-
+use crate::motion_model::{Pose2D, OdometryNoise, OdometryModel2D, OdoUpdate2D, OdoMotionBuilder2D};
 
 
 trait HasPose2D {
@@ -55,13 +54,21 @@ pub struct Odometry {
 }
 
 impl Odometry {
+	const MOTION_THRESHOLD_SPEED: f32 = 0.5; // min speed to consider that we are moving
+
 	fn new(_owner: &Node2D) -> Self { 
-		let noise_params = OdometryNoise::new(0.01, 0., 0.00001, 0.01);
+		// actual values are loaded later from editor by set_noise_params()
+		let noise_params = OdometryNoise::default();
+		let motion_params = OdoMotionBuilder2D {
+			speed_threshold: Self::MOTION_THRESHOLD_SPEED,
+			allow_reverse: true,
+		};
+
 		Self {
 			est_pose: None,
 			last_pose: None,
-			model: OdometryModel2D::new(noise_params, Default::default())
-		} 
+			model: OdometryModel2D::new(noise_params, motion_params),
+		}
 	}
 }
 
@@ -75,7 +82,16 @@ impl Odometry {
 		self.last_pose = Some(owner.get_global_pose());
 	}
 
-	const MOTION_THRESHOLD_SPEED: f32 = 1.0; // min speed to consider that we are moving
+	#[export]
+	fn set_noise_params(&mut self, _owner: &Node2D, rot_rot: f32, trans_rot: f32, trans_trans: f32, rot_trans: f32) {
+		let noise_params = self.model.noise_params_mut();
+		noise_params.rot_rot = rot_rot;
+		noise_params.trans_rot = trans_rot;
+		noise_params.rot_trans = rot_trans;
+		noise_params.trans_trans = trans_trans;
+
+		godot_print!("noise params: {:?}", self.model.noise_params());
+	}
 
 	#[export]
 	fn _physics_process(&mut self, owner: &Node2D, delta: f32) {

@@ -12,6 +12,7 @@ var _cur_speed := 0.0
 func _set_rotation_speed_degress(value: float):
 	rotation_speed = deg2rad(value)
 
+export(Resource) var odometry_noise
 
 var speed: float setget , get_speed
 
@@ -21,7 +22,12 @@ func get_speed() -> float:
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	$Odometry.set_noise_params(
+		odometry_noise.rot_rot,
+		odometry_noise.trans_rot,
+		odometry_noise.trans_trans,
+		odometry_noise.rot_trans
+	)
 
 const _control_update := {
 	rover_fwd = Vector2(0, 1),

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://DemoMain/OdometryNoiseModel.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+rot_rot = 0.1
+trans_rot = 5e-06
+trans_trans = 0.0001
+rot_trans = 0.01

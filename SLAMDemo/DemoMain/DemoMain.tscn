@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://lib/slamdemo.gdnlib" type="GDNativeLibrary" id=1]
 [ext_resource path="res://DemoMain/Rover.gd" type="Script" id=2]
 [ext_resource path="res://RoverPawn.tscn" type="PackedScene" id=3]
 [ext_resource path="res://DemoMain/Camera.gd" type="Script" id=4]
+[ext_resource path="res://DemoMain/OdometryNoise.tres" type="Resource" id=5]
 
 [sub_resource type="GDScript" id=3]
 script/source = "extends Node2D
@@ -46,6 +47,7 @@ script = ExtResource( 2 )
 max_speed = 500.0
 max_accel = 250.0
 max_brake = 1000.0
+odometry_noise = ExtResource( 5 )
 
 [node name="Odometry" type="Node2D" parent="Rover"]
 script = SubResource( 2 )
