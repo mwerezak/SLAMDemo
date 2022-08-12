@@ -1,13 +1,12 @@
 #![allow(dead_code)]
-#![allow(unused_imports)]
+// #![allow(unused_imports)]
 
 use gdnative::prelude::*;
 
 mod math;
 mod motion_model;
-
-mod demo;
-use demo::{DemoController, Odometry};
+mod simulation;
+use simulation::{DemoController, Odometry};
 
 // Function that registers all exposed classes to Godot
 fn init_lib(handle: InitHandle) {

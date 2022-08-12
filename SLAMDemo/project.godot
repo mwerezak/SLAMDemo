@@ -12,12 +12,12 @@ _global_script_classes=[ {
 "base": "Resource",
 "class": "OdometryNoiseModel",
 "language": "GDScript",
-"path": "res://DemoMain/OdometryNoiseModel.gd"
+"path": "res://OdometryDemo/OdometryNoiseModel.gd"
 }, {
 "base": "Node2D",
 "class": "Rover",
 "language": "GDScript",
-"path": "res://DemoMain/Rover.gd"
+"path": "res://scripts/Rover.gd"
 } ]
 _global_script_class_icons={
 "OdometryNoiseModel": "",
@@ -27,7 +27,7 @@ _global_script_class_icons={
 [application]
 
 config/name="SLAMDemo"
-run/main_scene="res://DemoMain/DemoMain.tscn"
+run/main_scene="res://OdometryDemo/OdometryDemo.tscn"
 config/icon="res://gfx/icon.png"
 
 [input]

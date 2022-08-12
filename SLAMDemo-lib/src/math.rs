@@ -106,7 +106,7 @@ impl ops::Mul for &Matrix2 {
 }
 
 
-
+#[derive(Clone)]
 pub struct Gaussian {
 	mean: f32,
 	std_dev: f32,

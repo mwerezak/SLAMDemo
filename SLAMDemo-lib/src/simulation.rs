@@ -1,6 +1,6 @@
 use gdnative::prelude::*;
-use crate::math::{self, Gaussian};
-use crate::motion_model::{Pose2D, OdometryNoise, OdometryModel2D, OdoUpdate2D, OdoMotionBuilder2D};
+use crate::motion_model::{Pose2D};
+use crate::motion_model::odometry::{OdometryNoise, OdometryModel2D, OdoUpdate2D, OdoMotionBuilder2D};
 
 
 trait HasPose2D {
@@ -45,6 +45,7 @@ impl DemoController {
 
 
 // odometry tracker with simulated noise
+// A Node2D that tracks it's own position with simulated odometry noise
 #[derive(NativeClass)]
 #[inherit(Node2D)]
 pub struct Odometry {
@@ -90,7 +91,7 @@ impl Odometry {
 		noise_params.rot_trans = rot_trans;
 		noise_params.trans_trans = trans_trans;
 
-		godot_print!("noise params: {:?}", self.model.noise_params());
+		// godot_print!("noise params: {:?}", self.model.noise_params());
 	}
 
 	#[export]
