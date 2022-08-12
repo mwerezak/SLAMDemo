@@ -10,3 +10,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 gdnative = "0.10"
+rand = "0.6.5"
+num-traits = "0.2.15"
