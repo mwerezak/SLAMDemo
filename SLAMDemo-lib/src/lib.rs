@@ -5,6 +5,7 @@ use gdnative::prelude::*;
 
 mod math;
 mod motion_model;
+mod state_estimation;
 mod simulation;
 
 use simulation::{Odometry};
