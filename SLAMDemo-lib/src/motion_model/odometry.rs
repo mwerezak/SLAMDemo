@@ -102,6 +102,15 @@ impl OdoMotionModel2D {
 			delta: self.delta,
 		}
 	}
+
+	pub fn mean_motion(&self) -> OdoMotion2D {
+		OdoMotion2D {
+			rot1: self.rot1.mean(),
+			trans: self.trans.mean(),
+			rot2: self.rot2.mean(),
+			delta: self.delta,
+		}
+	}
 }
 
 // Adapted from chapter 5.4

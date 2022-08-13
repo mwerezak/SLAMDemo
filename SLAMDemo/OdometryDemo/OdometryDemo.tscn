@@ -1,8 +1,8 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://RoverPawn.tscn" type="PackedScene" id=1]
 [ext_resource path="res://OdometryDemo/OdometryNoise.tres" type="Resource" id=2]
-[ext_resource path="res://lib/slamdemo.gdnlib" type="GDNativeLibrary" id=3]
+[ext_resource path="res://scripts/Odometry.gdns" type="Script" id=3]
 [ext_resource path="res://scripts/Rover.gd" type="Script" id=4]
 [ext_resource path="res://scripts/Camera.gd" type="Script" id=5]
 
@@ -26,16 +26,6 @@ func _process(delta):
 	$OdometryMarker.set_global_transform(xform)
 "
 
-[sub_resource type="NativeScript" id=2]
-resource_name = "Odometry"
-class_name = "Odometry"
-library = ExtResource( 3 )
-
-[sub_resource type="NativeScript" id=1]
-resource_name = "DemoController"
-class_name = "DemoController"
-library = ExtResource( 3 )
-
 [node name="DemoMain" type="Node2D"]
 script = SubResource( 3 )
 __meta__ = {
@@ -50,7 +40,7 @@ max_brake = 1000.0
 odometry_noise = ExtResource( 2 )
 
 [node name="Odometry" type="Node2D" parent="Rover"]
-script = SubResource( 2 )
+script = ExtResource( 3 )
 
 [node name="RoverMarker" parent="Rover" instance=ExtResource( 1 )]
 z_index = 1
@@ -61,9 +51,6 @@ script = ExtResource( 5 )
 zoom_rate = 0.05
 max_zoom = 12.5
 min_zoom = 1.0
-
-[node name="DemoController" type="Node" parent="."]
-script = SubResource( 1 )
 
 [node name="OdometryMarker" parent="." instance=ExtResource( 1 )]
 modulate = Color( 0.960784, 0, 0, 0.454902 )

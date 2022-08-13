@@ -6,11 +6,11 @@ use gdnative::prelude::*;
 mod math;
 mod motion_model;
 mod simulation;
-use simulation::{DemoController, Odometry};
+
+use simulation::{Odometry};
 
 // Function that registers all exposed classes to Godot
 fn init_lib(handle: InitHandle) {
-    handle.add_class::<DemoController>();
     handle.add_class::<Odometry>();
 }
 

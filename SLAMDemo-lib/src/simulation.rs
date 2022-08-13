@@ -19,31 +19,6 @@ impl HasPose2D for Node2D {
 
 
 
-#[derive(NativeClass)]
-#[inherit(Node)]
-pub struct DemoController {
-
-}
-
-impl DemoController {
-	fn new(_owner: &Node) -> Self { Self {} }
-}
-
-#[methods]
-impl DemoController {
-	#[export]
-	fn _ready(&self, _owner: &Node) {
-		godot_print!("Hello, world!");
-	}
-
-	#[export]
-	fn _process(&self, _owner: &Node, _delta: f64) {
-		// godot_print!("delta: {}", delta);
-	}
-}
-
-
-
 // odometry tracker with simulated noise
 // A Node2D that tracks it's own position with simulated odometry noise
 #[derive(NativeClass)]

@@ -12,3 +12,4 @@ crate-type = ["cdylib"]
 gdnative = "0.10"
 rand = "0.6.5"
 num-traits = "0.2.15"
+nalgebra = "0.31.1"
