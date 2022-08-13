@@ -9,8 +9,8 @@ pub trait Particle<W: Float>: Clone {
 	type Update;
 	type Measurement;
 
-	fn update_state(&mut self, update: Self::Update);
-	fn calc_weight(&self, meas: Self::Measurement) -> W;
+	fn update_state(&mut self, update: &Self::Update);
+	fn calc_weight(&self, meas: &Self::Measurement) -> W;
 }
 
 pub trait ParticleInit<P, W> 
@@ -34,7 +34,6 @@ where
 	// the extra trait bounds on W are needed for WeightedIndex
 	W: Float + SampleUniform + Default + for<'a> AddAssign<&'a W>,
 	P: Particle<W, Update=U, Measurement=Z>,
-	U: Clone, Z: Clone,
 {
 	pub fn new(num_particles: usize, init: impl ParticleInit<P,W>) -> Self {
 		let mut particles = Vec::with_capacity(num_particles);
@@ -50,18 +49,18 @@ where
 		}
 	}
 
-	pub fn state_update(&mut self, update: P::Update) {
+	pub fn state_update(&mut self, update: &P::Update) {
 		for particle in self.particles.iter_mut() {
-			particle.update_state(update.clone())
+			particle.update_state(&update)
 		}
 	}
 
-	pub fn measurement_update(&mut self, meas: P::Measurement) {
+	pub fn measurement_update(&mut self, meas: &P::Measurement) {
 		self.recalc_weights(meas);
 		self.particles = self.weighted_sample(self.num_particles);
 	}
 
-	fn recalc_weights(&mut self, meas: P::Measurement) {
+	fn recalc_weights(&mut self, meas: &P::Measurement) {
 		self.weights.resize(self.particles.len(), W::zero());
 		for (idx, particle) in self.particles.iter().enumerate() {
 			self.weights[idx] = particle.calc_weight(meas.clone());

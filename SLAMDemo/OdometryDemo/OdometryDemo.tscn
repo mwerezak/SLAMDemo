@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://RoverPawn.tscn" type="PackedScene" id=1]
-[ext_resource path="res://OdometryDemo/OdometryNoise.tres" type="Resource" id=2]
+[ext_resource path="res://OdometryDemo/OdometryNoiseModel.gd" type="Script" id=2]
 [ext_resource path="res://scripts/Odometry.gdns" type="Script" id=3]
 [ext_resource path="res://scripts/Rover.gd" type="Script" id=4]
 [ext_resource path="res://scripts/Camera.gd" type="Script" id=5]
@@ -37,10 +37,14 @@ script = ExtResource( 4 )
 max_speed = 500.0
 max_accel = 250.0
 max_brake = 1000.0
-odometry_noise = ExtResource( 2 )
 
 [node name="Odometry" type="Node2D" parent="Rover"]
 script = ExtResource( 3 )
+
+[node name="NoiseModel" type="Node" parent="Rover/Odometry"]
+script = ExtResource( 2 )
+rot_rot = 3.0
+trans_rot = 5e-05
 
 [node name="RoverMarker" parent="Rover" instance=ExtResource( 1 )]
 z_index = 1

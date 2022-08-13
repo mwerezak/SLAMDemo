@@ -56,17 +56,18 @@ impl Odometry {
 	fn _ready(&mut self, owner: &Node2D) {
 		self.est_pose = Some(owner.get_global_pose());
 		self.last_pose = Some(owner.get_global_pose());
-	}
 
-	#[export]
-	fn set_noise_params(&mut self, _owner: &Node2D, rot_rot: f32, trans_rot: f32, trans_trans: f32, rot_trans: f32) {
+		let noise_model = unsafe {
+			owner.get_node("NoiseModel")
+				.expect("NoiseModel is required")
+				.assume_safe()
+		};
+
 		let noise_params = self.model.noise_params_mut();
-		noise_params.rot_rot = rot_rot;
-		noise_params.trans_rot = trans_rot;
-		noise_params.rot_trans = rot_trans;
-		noise_params.trans_trans = trans_trans;
-
-		// godot_print!("noise params: {:?}", self.model.noise_params());
+		noise_params.rot_rot = noise_model.get("rot_rot").to::<f32>().unwrap();
+		noise_params.trans_rot = noise_model.get("trans_rot").to::<f32>().unwrap();
+		noise_params.rot_trans = noise_model.get("rot_trans").to::<f32>().unwrap();
+		noise_params.trans_trans = noise_model.get("trans_trans").to::<f32>().unwrap();
 	}
 
 	#[export]

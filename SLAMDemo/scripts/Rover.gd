@@ -4,31 +4,20 @@ extends Node2D
 export(float) var max_speed := 200.0
 export(float) var max_accel := 100.0
 export(float) var max_brake := 500.0
-export(float) var rotation_speed_degrees setget _set_rotation_speed_degress
+export(float) var rotation_speed_degrees = 90
 
-var rotation_speed: float = deg2rad(90)  # rad/s
+var rotation_speed: float  # rad/s
 var _cur_speed := 0.0
-
-func _set_rotation_speed_degress(value: float):
-	rotation_speed = deg2rad(value)
-
-export(Resource) var odometry_noise
 
 var speed: float setget , get_speed
 
 func get_speed() -> float:
 	return _cur_speed
 
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	$Odometry.set_noise_params(
-		odometry_noise.rot_rot,
-		odometry_noise.trans_rot,
-		odometry_noise.trans_trans,
-		odometry_noise.rot_trans
-	)
-
+	rotation_speed = deg2rad(rotation_speed_degrees)
+	
 const _control_update := {
 	rover_fwd = Vector2(0, 1),
 	rover_rev = Vector2(0, -1),

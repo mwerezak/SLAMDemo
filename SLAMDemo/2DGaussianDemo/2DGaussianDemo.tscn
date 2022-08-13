@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://lib/slamdemo.gdnlib" type="GDNativeLibrary" id=1]
+
+[sub_resource type="GDScript" id=4]
+script/source = "extends Node2D
+
+const Marker = preload(\"res://2DGaussianDemo/Marker.tscn\")
+
+onready var gauss2d = $Gaussian2D
+
+func _ready():
+	pass # Replace with function body.
+
+func _process(delta):
+	if Input.is_action_pressed('ui_accept'):
+		var u = gauss2d.sample()
+#		print(u)
+		
+		var marker = Marker.instance()
+		self.add_child(marker)
+		marker.global_position = u 
+"
+
+[sub_resource type="NativeScript" id=2]
+resource_name = "Gauss2D"
+class_name = "Gauss2D"
+library = ExtResource( 1 )
+
+[sub_resource type="GDScript" id=3]
+script/source = "extends Node
+
+export(Transform2D) var dist
+"
+
+[node name="Node2D" type="Node2D"]
+script = SubResource( 4 )
+
+[node name="Camera2D" type="Camera2D" parent="."]
+current = true
+
+[node name="Gaussian2D" type="Node2D" parent="."]
+script = SubResource( 2 )
+
+[node name="Distribution" type="Node" parent="Gaussian2D"]
+script = SubResource( 3 )
+dist = Transform2D( 5000, 4800, 4800, 5000, 0, 0 )
