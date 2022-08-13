@@ -1,12 +1,12 @@
 use std::ops;
-use num_traits;
+use num_traits::Float;
 use gdnative::prelude::*;
 use rand;
-use rand::distributions::{Normal, Distribution};
+use rand_distr::{Normal, Distribution};
 
 
 pub fn wrap<F>(val: F, mut from: F, mut to: F) -> F 
-where F: num_traits::Float
+where F: Float
 {
     if from > to { std::mem::swap(&mut from, &mut to); }
     let cycle = to - from;
@@ -108,35 +108,35 @@ impl ops::Mul for &Matrix2 {
 
 #[derive(Clone)]
 pub struct Gaussian {
-	mean: f32,
-	std_dev: f32,
+	normal: Normal<f32>
 }
 
 impl Gaussian {
 	pub fn new(mean: f32, std_dev: f32) -> Self {
-		Self { mean, std_dev }
+		Self {
+			normal: Normal::new(mean, std_dev).unwrap()
+		}
 	}
 
 	#[inline]
-	pub fn mean(&self) -> f32 { self.mean }
+	pub fn mean(&self) -> f32 { self.normal.mean() }
 	#[inline]
-	pub fn variance(&self) -> f32 { self.std_dev.powi(2) }
+	pub fn std_dev(&self) -> f32 { self.normal.std_dev() }
 	#[inline]
-	pub fn std_dev(&self) -> f32 { self.std_dev }
+	pub fn variance(&self) -> f32 { self.std_dev().powi(2) }
 
 	#[inline]
 	pub fn sample(&self) -> f32 {
-		let normal = Normal::new(self.mean as f64, self.std_dev as f64);
-		normal.sample(&mut rand::thread_rng()) as f32
+		self.normal.sample(&mut rand::thread_rng())
 	}
 }
 
 impl ops::Mul for &Gaussian {
 	type Output = Gaussian;
 	fn mul(self, rhs: &Gaussian) -> Gaussian {
-		let m1 = self.mean;
+		let m1 = self.mean();
 		let v1 = self.variance();
-		let m2 = rhs.mean;
+		let m2 = rhs.mean();
 		let v2 = rhs.variance();
 
 		let mean = (m1*v2 + m2*v1)/(v1 + v2);
