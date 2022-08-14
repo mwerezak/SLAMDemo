@@ -23,6 +23,9 @@ func gps_enabled() -> bool:
 	
 func localization_enabled() -> bool:
 	return $GUI/OptionGrid/LocalizationEnabledCheckbox.pressed
+	
+func show_particles() -> bool:
+	return $GUI/OptionGrid/ShowParticlesCheckbox.pressed
 
 func _ready():
 	rover.odometry.connect('motion_update', self, '_on_odometry_update')
@@ -50,10 +53,14 @@ func _on_gps_refresh():
 
 func _on_LocalizationEnabledCheckbox_toggled(enabled: bool):
 	if enabled:
-		rover.localization.reset(self.rover.global_transform)
-		rover.localization.show()
+		rover.localization.reset(self.odom_marker.global_transform)
+		rover.localization.visible = show_particles()
 	else:
 		rover.localization.hide()
+
+
+func _on_ShowParticlesCheckbox_toggled(enabled: bool):
+	rover.localization.visible = localization_enabled() and show_particles()
 "
 
 [node name="DemoMain" type="Node2D"]
@@ -76,13 +83,10 @@ autostart = true
 
 [node name="Rover" parent="." instance=ExtResource( 2 )]
 
-[node name="NoiseModel" parent="Rover/GPS" index="0"]
-std_dev = 1000.0
-
 [node name="Localization" type="Node2D" parent="Rover"]
 visible = false
 script = ExtResource( 4 )
-marker_count = 10
+marker_count = 1000
 marker_color = Color( 0, 0.490196, 0.811765, 1 )
 
 [node name="ParticleFilter" type="Node" parent="Rover/Localization"]
@@ -125,5 +129,6 @@ text = "GPS Enabled"
 
 [connection signal="timeout" from="GPSMarker/Refresh" to="." method="_on_gps_refresh"]
 [connection signal="toggled" from="GUI/OptionGrid/LocalizationEnabledCheckbox" to="." method="_on_LocalizationEnabledCheckbox_toggled"]
+[connection signal="toggled" from="GUI/OptionGrid/ShowParticlesCheckbox" to="." method="_on_ShowParticlesCheckbox_toggled"]
 
 [editable path="Rover"]

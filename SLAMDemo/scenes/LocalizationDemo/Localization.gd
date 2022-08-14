@@ -2,7 +2,7 @@ extends Node2D
 
 const Marker = preload("res://RoverPawn.tscn")
 
-export(int, 0, 10000) var marker_count: int = 100
+export(int, 0, 10000) var marker_count: int = 100 setget _set_marker_count_deferred
 export(int, 0, 10000) var particle_count: int = 1000 setget _set_particle_count
 export(Color) var marker_color: Color
 
@@ -25,8 +25,7 @@ func gps_update(gps_meas):
 
 func _ready():
 	_set_particle_count(particle_count)
-	for _i in range(marker_count):
-		_create_marker()
+	_set_marker_count(marker_count)
 
 func _process(_delta):
 	if _update and self.visible:
@@ -37,7 +36,17 @@ func _set_particle_count(value):
 	if _pfilter != null:
 		_pfilter.set_particle_count(value)
 		print(_pfilter.get_particle_count())
-		
+
+func _set_marker_count(value):
+	while value < _markers.size():
+		var marker = _markers.pop_back()
+		marker.queue_free()
+	while value > _markers.size():
+		_create_marker()
+	_update = true
+
+func _set_marker_count_deferred(value):
+	call_deferred('_set_marker_count', value)
 		
 func _update_markers():
 	var particles = _pfilter.get_particles(_markers.size())
