@@ -10,7 +10,7 @@ const Marker = preload(\"res://2DGaussianDemo/Marker.tscn\")
 onready var gauss2d = $Gaussian2D
 
 func _ready():
-	pass # Replace with function body.
+	gauss2d.load_distribution($Gaussian2D/Distribution)
 
 func _process(delta):
 	if Input.is_action_pressed('ui_accept'):
@@ -44,4 +44,4 @@ script = SubResource( 2 )
 
 [node name="Distribution" type="Node" parent="Gaussian2D"]
 script = SubResource( 3 )
-dist = Transform2D( 5000, 4800, 4800, 5000, 0, 0 )
+dist = Transform2D( 0, 0, 0, 0, 0, 0 )

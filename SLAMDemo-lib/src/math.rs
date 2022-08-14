@@ -1,10 +1,12 @@
 use std::ops;
 use std::f32::consts::PI;
 use num_traits::Float;
-use gdnative::prelude::*;
 use rand;
 use rand_distr::{Normal, StandardNormal, Distribution};
 
+pub use gdnative::prelude::{
+	Vector2, Transform2D
+};
 
 pub fn wrap<F>(val: F, mut from: F, mut to: F) -> F 
 where F: Float
@@ -18,8 +20,7 @@ where F: Float
 
 // pub struct WrappedAngle<F: num_traits::Float, const WRAP: f32>(F);
 
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Matrix2 {
 	// basis vector representation
 	pub a: Vector2, 
@@ -188,7 +189,7 @@ impl ops::Sub<&Matrix2> for &Matrix2 {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Gaussian {
 	normal: Normal<f32>
 }
@@ -254,7 +255,6 @@ impl Gaussian2D {
 		);
 		let rot = Matrix2::from_rotation(rotation);
 		let covar = rot.dot(&covar).dot(&rot.transposed());
-		// godot_print!("covar={:?}", covar);
 		Self::new(mean, covar)
 	}
 
@@ -275,8 +275,7 @@ impl Gaussian2D {
 		// numerical stability of Cholesky decomposion
 		let sigma = &self.covar + &((&Matrix2::IDENTITY)*f32::EPSILON);
 		let ll = sigma.cholesky();
-		// godot_print!("sigma={:?}", sigma);
-		// godot_print!("ll={:?}", ll);
+
 		let u = Vector2::new(
 			StandardNormal.sample(&mut rand::thread_rng()),
 			StandardNormal.sample(&mut rand::thread_rng()),

@@ -1,5 +1,5 @@
 use gdnative::prelude::*;
-use crate::math::{self, Gaussian};
+use crate::math::{self, Gaussian, Vector2};
 use crate::motion_model::Pose2D;
 
 #[derive(Clone)]
@@ -64,6 +64,7 @@ impl OdoMotionBuilder2D {
 }
 
 #[derive(Clone)]
+#[derive(ToVariant, FromVariant)]
 pub struct OdoMotion2D {
 	pub rot1: f32,
 	pub trans: f32,
@@ -80,7 +81,8 @@ impl OdoMotion2D {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
+#[derive(ToVariant, FromVariant)]
 pub struct OdoMotionModel2D {
 	pub rot1: Gaussian,
 	pub trans: Gaussian,
@@ -100,6 +102,18 @@ impl OdoMotionModel2D {
 			trans: self.trans.sample(),
 			rot2: self.rot2.sample(),
 			delta: self.delta,
+		}
+	}
+
+	// the "measured motion model" is a motion model where the mean value is the 
+	// sampled motion (i.e. with noise applied) and std deviations represent the uncertainty
+	pub fn sample_motion_model(&self) -> OdoMotionModel2D {
+		let sample_motion = self.sample_motion();
+		OdoMotionModel2D {
+			rot1: Gaussian::new(sample_motion.rot1, self.rot1.std_dev()),
+			trans: Gaussian::new(sample_motion.trans, self.trans.std_dev()),
+			rot2: Gaussian::new(sample_motion.rot2, self.rot2.std_dev()),
+			delta: sample_motion.delta,
 		}
 	}
 
@@ -153,6 +167,9 @@ impl OdometryModel2D {
 	pub fn noise_params(&self) -> &OdometryNoise { &self.noise }
 	pub fn noise_params_mut(&mut self) -> &mut OdometryNoise { &mut self.noise }
 
+	pub fn motion_params(&self) -> &OdoMotionBuilder2D { &self.builder }
+	pub fn motion_params_mut(&mut self) -> &mut OdoMotionBuilder2D { &mut self.builder }
+
 	pub fn get_motion_model(&self, update: &OdoUpdate2D) -> OdoMotionModel2D {
 		let motion = self.builder.from_update(update);
 
@@ -170,11 +187,5 @@ impl OdometryModel2D {
 			rot2:  Gaussian::new(motion.rot2,  rot2_stdev),
 			delta: motion.delta,
 		}
-	}
-
-	// get measured motion with noise applied
-	pub fn get_motion_measurement(&self, true_update: &OdoUpdate2D) -> OdoMotion2D {		
-		self.get_motion_model(true_update)
-			.sample_motion()
 	}
 }

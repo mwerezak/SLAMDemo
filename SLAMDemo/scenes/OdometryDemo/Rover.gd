@@ -1,4 +1,3 @@
-class_name Rover
 extends Node2D
 
 export(float) var max_speed := 200.0
@@ -11,12 +10,15 @@ var _cur_speed := 0.0
 
 var speed: float setget , get_speed
 
+onready var odometry = $Odometry
+
 func get_speed() -> float:
 	return _cur_speed
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	rotation_speed = deg2rad(rotation_speed_degrees)
+	odometry.load_settings($Odometry/Settings)
 	
 const _control_update := {
 	rover_fwd = Vector2(0, 1),

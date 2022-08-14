@@ -1,7 +1,6 @@
-use gdnative::prelude::*;
-
-
 pub mod odometry;
+
+use crate::math::{Vector2, Transform2D};
 
 
 #[derive(Clone, Copy, Debug)]

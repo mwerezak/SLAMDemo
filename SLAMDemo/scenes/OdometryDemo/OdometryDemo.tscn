@@ -1,0 +1,60 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://scripts/Camera.gd" type="Script" id=1]
+[ext_resource path="res://scripts/Odometry.gdns" type="Script" id=2]
+[ext_resource path="res://RoverPawn.tscn" type="PackedScene" id=3]
+[ext_resource path="res://OdometryDemo/Rover.gd" type="Script" id=4]
+
+[sub_resource type="GDScript" id=3]
+script/source = "extends Node2D
+
+onready var rover = $Rover
+onready var est_pose_marker = $OdometryMarker
+
+func _ready():
+	pass
+
+func _process(_delta):
+	var xform := rover.odometry.get_estimated_global_transform() as Transform2D
+	est_pose_marker.set_global_transform(xform)
+"
+
+[sub_resource type="GDScript" id=4]
+script/source = "extends Node
+
+export(float) var speed_threshold: float = 1.0
+export(bool) var allow_reverse: bool = true
+
+export(float, 0, 1000, 0.00000001) var rot_rot: float     = 0.1      # effect of rotation speed on rotation noise
+export(float, 0, 1000, 0.00000001) var trans_rot: float   = 0.00005 # effect of translation speed on rotation noise
+export(float, 0, 1000, 0.00000001) var trans_trans: float = 0.0001   # effect of translation speed on translation noise
+export(float, 0, 1000, 0.00000001) var rot_trans: float   = 0.01     # effect of rotation speed on translation noise
+"
+
+[node name="DemoMain" type="Node2D"]
+script = SubResource( 3 )
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="OdometryMarker" parent="." instance=ExtResource( 3 )]
+modulate = Color( 0.960784, 0, 0, 0.454902 )
+
+[node name="Rover" type="Node2D" parent="."]
+script = ExtResource( 4 )
+
+[node name="Odometry" type="Node2D" parent="Rover"]
+script = ExtResource( 2 )
+
+[node name="Settings" type="Node" parent="Rover/Odometry"]
+script = SubResource( 4 )
+
+[node name="RoverMarker" parent="Rover" instance=ExtResource( 3 )]
+z_index = 1
+
+[node name="Camera" type="Camera2D" parent="."]
+current = true
+script = ExtResource( 1 )
+zoom_rate = 0.05
+max_zoom = 12.5
+min_zoom = 1.0

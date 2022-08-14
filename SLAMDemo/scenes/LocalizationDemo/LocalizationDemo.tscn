@@ -1,0 +1,127 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://RoverPawn.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scripts/Rover/Rover.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/LocalizationDemo/LocalizationFilter.gdns" type="Script" id=3]
+[ext_resource path="res://scenes/LocalizationDemo/Localization.gd" type="Script" id=4]
+[ext_resource path="res://scripts/Camera.gd" type="Script" id=5]
+[ext_resource path="res://scenes/LocalizationDemo/GPSMarker.tscn" type="PackedScene" id=7]
+
+[sub_resource type="GDScript" id=3]
+script/source = "extends Node2D
+
+onready var rover = $Rover
+
+onready var odom_marker = $OdometryMarker
+onready var gps_marker = $GPSMarker
+
+var last_gps = null
+
+
+func gps_enabled() -> bool:
+	return $GUI/OptionGrid/GPSEnabledCheckbox.pressed
+	
+func localization_enabled() -> bool:
+	return $GUI/OptionGrid/LocalizationEnabledCheckbox.pressed
+
+func _ready():
+	rover.odometry.connect('motion_update', self, '_on_odometry_update')
+
+func _process(_delta):
+	var xform := rover.odometry.get_estimated_global_transform() as Transform2D
+	odom_marker.global_transform = xform
+	
+	if last_gps != null:
+		gps_marker.show()
+		gps_marker.global_position = last_gps.loc
+	else:
+		gps_marker.hide()
+
+func _on_odometry_update(motion_model, _pose):
+	if localization_enabled():
+		rover.localization.motion_update(motion_model)
+
+func _on_gps_refresh():
+	last_gps = null
+	if gps_enabled():
+		last_gps = rover.gps.measure_global_position()
+		if localization_enabled():
+			rover.localization.gps_update(last_gps)
+
+func _on_LocalizationEnabledCheckbox_toggled(enabled: bool):
+	if enabled:
+		rover.localization.reset(self.rover.global_transform)
+		rover.localization.show()
+	else:
+		rover.localization.hide()
+"
+
+[node name="DemoMain" type="Node2D"]
+script = SubResource( 3 )
+__meta__ = {
+"_editor_description_": ""
+}
+
+[node name="OdometryMarker" parent="." instance=ExtResource( 1 )]
+modulate = Color( 0.960784, 0, 0, 0.454902 )
+
+[node name="GPSMarker" parent="." instance=ExtResource( 7 )]
+visible = false
+modulate = Color( 0.054902, 1, 0, 0.588235 )
+
+[node name="Refresh" type="Timer" parent="GPSMarker"]
+process_mode = 0
+wait_time = 0.2
+autostart = true
+
+[node name="Rover" parent="." instance=ExtResource( 2 )]
+
+[node name="Localization" type="Node2D" parent="Rover"]
+visible = false
+script = ExtResource( 4 )
+marker_count = 10
+particle_count = 1
+marker_color = Color( 0, 0.490196, 0.811765, 1 )
+
+[node name="ParticleFilter" type="Node" parent="Rover/Localization"]
+script = ExtResource( 3 )
+
+[node name="Camera" type="Camera2D" parent="."]
+current = true
+script = ExtResource( 5 )
+zoom_rate = 0.05
+max_zoom = 12.5
+min_zoom = 1.0
+
+[node name="GUI" type="CanvasLayer" parent="."]
+
+[node name="OptionGrid" type="GridContainer" parent="GUI"]
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+
+[node name="LocalizationEnabledCheckbox" type="CheckBox" parent="GUI/OptionGrid"]
+margin_right = 107.0
+margin_bottom = 24.0
+text = "PF Enabled"
+
+[node name="ShowParticlesCheckbox" type="CheckBox" parent="GUI/OptionGrid"]
+margin_left = 111.0
+margin_right = 231.0
+margin_bottom = 24.0
+pressed = true
+text = "Show Particles"
+
+[node name="GPSEnabledCheckbox" type="CheckBox" parent="GUI/OptionGrid"]
+margin_top = 28.0
+margin_right = 107.0
+margin_bottom = 52.0
+text = "GPS Enabled"
+
+[connection signal="timeout" from="GPSMarker/Refresh" to="." method="_on_gps_refresh"]
+[connection signal="toggled" from="GUI/OptionGrid/LocalizationEnabledCheckbox" to="." method="_on_LocalizationEnabledCheckbox_toggled"]
+
+[editable path="Rover"]

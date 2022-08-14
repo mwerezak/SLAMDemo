@@ -8,26 +8,10 @@
 
 config_version=4
 
-_global_script_classes=[ {
-"base": "Node",
-"class": "OdometryNoiseModel",
-"language": "GDScript",
-"path": "res://OdometryDemo/OdometryNoiseModel.gd"
-}, {
-"base": "Node2D",
-"class": "Rover",
-"language": "GDScript",
-"path": "res://scripts/Rover.gd"
-} ]
-_global_script_class_icons={
-"OdometryNoiseModel": "",
-"Rover": ""
-}
-
 [application]
 
 config/name="SLAMDemo"
-run/main_scene="res://OdometryDemo/OdometryDemo.tscn"
+run/main_scene="res://scenes/LocalizationDemo/LocalizationDemo.tscn"
 config/icon="res://gfx/icon.png"
 
 [input]

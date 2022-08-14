@@ -1,5 +1,5 @@
 use gdnative::prelude::*;
-use crate::math::Gaussian2D;
+use crate::math::{Gaussian2D, Vector2};
 
 
 #[derive(NativeClass)]
@@ -17,12 +17,8 @@ impl Gauss2D {
 	}
 
 	#[export]
-	fn _ready(&mut self, owner: &Node) {
-		let dist_info = unsafe { 
-			owner.get_node("Distribution")
-				.expect("Distribution is required")
-				.assume_safe()
-		};
+	fn load_distribution(&mut self, _owner: &Node, dist_info: Ref<Object>) {
+		let dist_info = unsafe { dist_info.assume_safe() };
 		let dist = dist_info.get("dist").to::<Transform2D>().unwrap();
 		self.dist = Some(Gaussian2D::new(dist.origin, dist.into()));
 	}
