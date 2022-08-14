@@ -30,7 +30,11 @@ impl Particle<f32> for DemoParticle {
 
 	fn calc_weight(&self, meas: &GPSMeasurement) -> f32 {
 		let gps_model = Gaussian2D::new(self.pose.loc, meas.covar);
-		gps_model.probability_density(meas.loc)
+		let weight = gps_model.probability_density(meas.loc);
+		// godot_print!("loc: {:?}", self.pose.loc);
+		// godot_print!("gps: {:?}", meas);
+		// godot_print!("weight: {:?}", weight);
+		weight
 	}
 }
 

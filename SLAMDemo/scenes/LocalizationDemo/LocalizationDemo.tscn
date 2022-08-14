@@ -76,11 +76,13 @@ autostart = true
 
 [node name="Rover" parent="." instance=ExtResource( 2 )]
 
+[node name="NoiseModel" parent="Rover/GPS" index="0"]
+std_dev = 1000.0
+
 [node name="Localization" type="Node2D" parent="Rover"]
 visible = false
 script = ExtResource( 4 )
 marker_count = 10
-particle_count = 1
 marker_color = Color( 0, 0.490196, 0.811765, 1 )
 
 [node name="ParticleFilter" type="Node" parent="Rover/Localization"]

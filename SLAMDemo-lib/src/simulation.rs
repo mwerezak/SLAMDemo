@@ -119,6 +119,7 @@ impl Odometry {
 
 
 
+#[derive(Debug, Clone)]
 #[derive(ToVariant, FromVariant)]
 pub struct GPSMeasurement {
 	pub loc: Vector2,

@@ -34,7 +34,7 @@ func _process(_delta):
 		_update = false
 
 func _set_particle_count(value):
-	if _pfilter:
+	if _pfilter != null:
 		_pfilter.set_particle_count(value)
 		print(_pfilter.get_particle_count())
 		

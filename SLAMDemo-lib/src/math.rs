@@ -114,11 +114,22 @@ impl Matrix2 {
 	}
 
 	#[inline]
-	pub fn xform_inv(&self, u: Vector2) -> Vector2 {
-		Vector2::new(
-			self.a.dot(u),
-			self.b.dot(u),
-		)
+	pub fn xform_inv(&self, u: Vector2) -> Option<Vector2> {
+		self.inverted().map(|m| m.xform(u))
+	}
+
+	#[inline]
+	pub fn inverted(&self) -> Option<Matrix2> {
+		let det = self.determinant();
+		if det == 0. {
+			return None;
+		}
+
+		let inv = Matrix2::from_basis(
+			Vector2::new(self.b.y, -self.a.y)/det,
+			Vector2::new(-self.b.x, self.a.x)/det,
+		);
+		Some(inv)
 	}
 
 	#[inline]
@@ -266,7 +277,10 @@ impl Gaussian2D {
 	pub fn probability_density(&self, x: Vector2) -> f32 {
 		let z = x - self.mean;
 		let n = 2.0*PI*self.covar.determinant().sqrt();
-		let arg = -0.5*z.dot(self.covar.xform_inv(z));
+		let arg = -0.5*z.dot(self.covar.xform_inv(z).unwrap());
+		// gdnative::log::godot_print!("z: {:?}", z);
+		// gdnative::log::godot_print!("n: {:?}", n);
+		// gdnative::log::godot_print!("arg: {:?}", arg);
 		f32::exp(arg)/n
 	}
 
