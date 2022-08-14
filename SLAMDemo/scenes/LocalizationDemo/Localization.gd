@@ -2,8 +2,8 @@ extends Node2D
 
 const Marker = preload("res://RoverPawn.tscn")
 
-export(int, 0, 10000) var marker_count: int = 100 setget _set_marker_count_deferred
-export(int, 0, 10000) var particle_count: int = 1000 setget _set_particle_count
+export(int, 0, 5000) var marker_count: int = 100 setget _set_marker_count_deferred
+export(int, 0, 5000) var particle_count = 1000
 export(Color) var marker_color: Color
 
 onready var _pfilter = $ParticleFilter
@@ -12,6 +12,7 @@ var _markers = []
 var _update = false
 
 func reset(pose: Transform2D):
+	_pfilter.set_particle_count(particle_count)
 	_pfilter.reset_pose_with_absolute_certainty(pose)
 	_update = true
 
@@ -24,18 +25,12 @@ func gps_update(gps_meas):
 	_update = true
 
 func _ready():
-	_set_particle_count(particle_count)
 	_set_marker_count(marker_count)
 
 func _process(_delta):
 	if _update and self.visible:
 		_update_markers()
 		_update = false
-
-func _set_particle_count(value):
-	if _pfilter != null:
-		_pfilter.set_particle_count(value)
-		print(_pfilter.get_particle_count())
 
 func _set_marker_count(value):
 	while value < _markers.size():
@@ -53,7 +48,7 @@ func _update_markers():
 	if particles == null or particles.empty():
 		for marker in _markers:
 			marker.hide()
-			return
+		return
 	
 	var max_weight = particles[0][1]
 #	print("max weight: ", max_weight)

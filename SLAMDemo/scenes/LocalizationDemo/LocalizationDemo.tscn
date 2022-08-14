@@ -58,9 +58,12 @@ func _on_LocalizationEnabledCheckbox_toggled(enabled: bool):
 	else:
 		rover.localization.hide()
 
-
 func _on_ShowParticlesCheckbox_toggled(enabled: bool):
 	rover.localization.visible = localization_enabled() and show_particles()
+
+func _on_ShowParticlesSlider_value_changed(value):
+	var perc = 1.0 - value/100.0
+	rover.localization.marker_count = round(perc*rover.localization.particle_count)
 "
 
 [node name="DemoMain" type="Node2D"]
@@ -86,7 +89,7 @@ autostart = true
 [node name="Localization" type="Node2D" parent="Rover"]
 visible = false
 script = ExtResource( 4 )
-marker_count = 1000
+marker_count = 10
 marker_color = Color( 0, 0.490196, 0.811765, 1 )
 
 [node name="ParticleFilter" type="Node" parent="Rover/Localization"]
@@ -127,8 +130,17 @@ margin_right = 107.0
 margin_bottom = 52.0
 text = "GPS Enabled"
 
+[node name="ShowParticlesSlider" type="HSlider" parent="GUI/OptionGrid"]
+margin_left = 111.0
+margin_top = 28.0
+margin_right = 231.0
+margin_bottom = 44.0
+value = 90.0
+tick_count = 10
+
 [connection signal="timeout" from="GPSMarker/Refresh" to="." method="_on_gps_refresh"]
 [connection signal="toggled" from="GUI/OptionGrid/LocalizationEnabledCheckbox" to="." method="_on_LocalizationEnabledCheckbox_toggled"]
 [connection signal="toggled" from="GUI/OptionGrid/ShowParticlesCheckbox" to="." method="_on_ShowParticlesCheckbox_toggled"]
+[connection signal="value_changed" from="GUI/OptionGrid/ShowParticlesSlider" to="." method="_on_ShowParticlesSlider_value_changed"]
 
 [editable path="Rover"]
