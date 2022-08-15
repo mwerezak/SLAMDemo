@@ -86,6 +86,10 @@ autostart = true
 
 [node name="Rover" parent="." instance=ExtResource( 2 )]
 
+[node name="Settings" parent="Rover/Odometry" index="0"]
+rot_rot = 5.0
+trans_rot = 0.0001
+
 [node name="Localization" type="Node2D" parent="Rover"]
 visible = false
 script = ExtResource( 4 )
