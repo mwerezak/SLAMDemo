@@ -5,7 +5,7 @@ use crate::motion_model::Pose2D;
 use crate::motion_model::odometry::OdoMotionModel2D;
 use crate::simulation::{GPSMeasurement};
 use crate::state_estimation::particle_filter::{
-	Particle, ParticleFilter
+	Particle, ParticleFilter, ResamplePolicy
 };
 
 
@@ -61,8 +61,9 @@ impl LocalizationFilter {
 	// this must be called at least once to initialize the localization
 	#[export]
 	fn reset_pose_with_absolute_certainty(&mut self, _owner: &Node, true_pose: Transform2D) {
-		self.pfilter = Some(DemoParticleFilter::new(
+		self.pfilter = Some(DemoParticleFilter::with_resample_policy(
 			self.particle_count, 
+			ResamplePolicy::LowVariance,
 			|| DemoParticle { pose: true_pose.into() }
 		));
 	}
